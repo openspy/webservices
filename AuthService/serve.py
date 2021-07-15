@@ -11,6 +11,7 @@ import struct, os
 
 API_URL = os.environ.get('API_URL')
 API_KEY = os.environ.get('API_KEY')
+PRIVATE_KEY_PATH = os.environ.get('AUTHSERVICES_PRIVKEY_PATH')
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     LOGIN_RESPONSE_SUCCESS = 0
@@ -23,7 +24,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     LOGIN_RESPONSE_SERVER_ERROR = 7
     
     APIClient = OpenSpyAuth(API_URL, API_KEY)
-    private_key_file = open("./openspy_webservices_private.pem","r")
+    private_key_file = open(PRIVATE_KEY_PATH,"r")
     keydata = private_key_file.read()
     auth_private_key = rsa.PrivateKey.load_pkcs1(keydata)
 
