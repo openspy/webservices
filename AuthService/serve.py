@@ -67,7 +67,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         password = rsa.decrypt(binascii.unhexlify(encrypted_pass.text),self.auth_private_key)
 
         #def UniqueNickLogin(self, uniquenick, namespaceid, partnercode, password):
-        results = self.APIClient.UniqueNickLogin(uniquenick, namespaceid, partnercode, password)
+        results = self.APIClient.UniqueNickLogin(uniquenick, namespaceid, partnercode, password.decode("utf-8"))
 
         resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')
         body = ET.SubElement(resp_xml, '{http://schemas.xmlsoap.org/soap/envelope/}Body')
@@ -95,7 +95,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         password = rsa.decrypt(binascii.unhexlify(encrypted_pass.text),self.auth_private_key)
 
         #def UniqueNickLogin(self, uniquenick, namespaceid, partnercode, password):
-        results = self.APIClient.NickLogin(nick, email, namespaceid, partnercode, password)
+        results = self.APIClient.NickLogin(nick, email, namespaceid, partnercode, password.decode("utf-8"))
 
         resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')
         body = ET.SubElement(resp_xml, '{http://schemas.xmlsoap.org/soap/envelope/}Body')
@@ -152,8 +152,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         result['profileid'] = response['profile']['id']
         result['expiretime'] = response['session']['expiresAt']
         result['profilenick'] = response['profile']['nick']
-        result['uniquenick'] = response['profile']['uniquenick']
+        result['uniquenick'] = response['profile']['uniquenick'] or ''
         result['cdkeyhash'] = '9f86d081884c7d659a2feaa0c55ad015'.upper() #XXX: FETCH FROM DB!!
+
         return result
     def WriteErrorResponse(self, xml_tree, response):
         response_code_node = ET.SubElement(xml_tree, '{http://gamespy.net/AuthService/}responseCode')
