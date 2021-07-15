@@ -28,9 +28,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     auth_private_key = rsa.PrivateKey.load_pkcs1(keydata)
 
     def do_GET(self):
-        self.send_response(HTTPStatus.OK)
+        self.send_response(HTTPStatus.NOT_FOUND)
         self.end_headers()
-        self.wfile.write(b'Hello world')
     def handle_remoteauth_login(self, xml_tree):
         authtoken_node = xml_tree.find('{http://gamespy.net/AuthService/}authtoken')
         authtoken = authtoken_node.text
@@ -190,10 +189,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
         node = ET.SubElement(certificate_node, '{}{}'.format("{http://gamespy.net/AuthService/}",'length'))
-        node.text = str(666)
+        node.text = str(0)
 
         node = ET.SubElement(certificate_node, '{}{}'.format("{http://gamespy.net/AuthService/}",'version'))
-        node.text = str(666)
+        node.text = str(1)
 
         response_dict = self.GetResponseProfileDict(response)
         for k,v in response_dict.items():
@@ -216,7 +215,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         node.text = binascii.hexlify(server_data).decode('utf8')
 
         node = ET.SubElement(certificate_node, '{}{}'.format("{http://gamespy.net/AuthService/}",'signature'))
-        node.text = self.generate_signature(666,666, response_dict, server_data, True)
+        node.text = self.generate_signature(0,1, response_dict, server_data, True)
 
     def generate_signature(self, length, version, auth_user_dir, server_data, use_md5):
 
