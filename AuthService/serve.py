@@ -64,10 +64,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         #decrypt pw
         encrypted_pass = xml_tree.find('{http://gamespy.net/AuthService/}password').find('{http://gamespy.net/AuthService/}Value')
-        password = rsa.decrypt(binascii.unhexlify(encrypted_pass.text),self.auth_private_key)
+        try:
+            password = rsa.decrypt(binascii.unhexlify(encrypted_pass.text),self.auth_private_key).decode("utf-8")
+        except rsa.pkcs1.DecryptionError:
+            password = ""
 
         #def UniqueNickLogin(self, uniquenick, namespaceid, partnercode, password):
-        results = self.APIClient.UniqueNickLogin(uniquenick, namespaceid, partnercode, password.decode("utf-8"))
+        results = self.APIClient.UniqueNickLogin(uniquenick, namespaceid, partnercode, password)
 
         resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')
         body = ET.SubElement(resp_xml, '{http://schemas.xmlsoap.org/soap/envelope/}Body')
@@ -92,10 +95,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         #decrypt pw
         encrypted_pass = xml_tree.find('{http://gamespy.net/AuthService/}password').find('{http://gamespy.net/AuthService/}Value')
-        password = rsa.decrypt(binascii.unhexlify(encrypted_pass.text),self.auth_private_key)
+        try:
+            password = rsa.decrypt(binascii.unhexlify(encrypted_pass.text),self.auth_private_key).decode("utf-8")
+        except rsa.pkcs1.DecryptionError:
+            password = ""
 
         #def UniqueNickLogin(self, uniquenick, namespaceid, partnercode, password):
-        results = self.APIClient.NickLogin(nick, email, namespaceid, partnercode, password.decode("utf-8"))
+        results = self.APIClient.NickLogin(nick, email, namespaceid, partnercode, password)
 
         resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')
         body = ET.SubElement(resp_xml, '{http://schemas.xmlsoap.org/soap/envelope/}Body')
