@@ -12,7 +12,7 @@ import struct, os
 API_URL = os.environ.get('API_URL')
 API_KEY = os.environ.get('API_KEY')
 PRIVATE_KEY_PATH = os.environ.get('AUTHSERVICES_PRIVKEY_PATH')
-AUTH_TOKEN_EXPIRE_TIME = int(environ.get('AUTH_TOKEN_EXPIRE_TIME'))
+AUTH_TOKEN_EXPIRE_TIME = int(os.environ.get('AUTH_TOKEN_EXPIRE_TIME'))
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     LOGIN_RESPONSE_SUCCESS = 0
