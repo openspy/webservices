@@ -12,6 +12,7 @@ import struct, os
 API_URL = os.environ.get('API_URL')
 API_KEY = os.environ.get('API_KEY')
 PRIVATE_KEY_PATH = os.environ.get('AUTHSERVICES_PRIVKEY_PATH')
+AUTH_TOKEN_EXPIRE_TIME = int(environ.get('AUTH_TOKEN_EXPIRE_TIME'))
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     LOGIN_RESPONSE_SUCCESS = 0
@@ -23,7 +24,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     LOGIN_RESPONSE_DB_ERROR = 6
     LOGIN_RESPONSE_SERVER_ERROR = 7
     
-    APIClient = OpenSpyAuth(API_URL, API_KEY)
+    APIClient = OpenSpyAuth(API_URL, API_KEY, AUTH_TOKEN_EXPIRE_TIME)
     private_key_file = open(PRIVATE_KEY_PATH,"r")
     keydata = private_key_file.read()
     auth_private_key = rsa.PrivateKey.load_pkcs1(keydata)
@@ -110,6 +111,39 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.WriteAuthResponse(login_result, results)
         
         return resp_xml
+
+    def GetProfileIdFromNpTicket(self, xml_tree):
+        partnercode_node = xml_tree.find('{http://gamespy.net/AuthService/}partnercode')
+        partnerCode = int(partnercode_node.text)
+
+        namespaceid_node = xml_tree.find('{http://gamespy.net/AuthService/}namespaceid')
+        namespaceId = int(namespaceid_node.text)
+        npTicket = xml_tree.find('{http://gamespy.net/AuthService/}npticket').find('{http://gamespy.net/AuthService/}Value').text
+
+        return 55697 #PS3Stub account
+    def handle_ps3auth_login(self, xml_tree):
+        resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')
+        body = ET.SubElement(resp_xml, '{http://schemas.xmlsoap.org/soap/envelope/}Body')
+        
+
+        profileId = self.GetProfileIdFromNpTicket(xml_tree)
+
+        auth_data = self.APIClient.GenerateAuthToken(profileId)
+
+        print(auth_data)
+
+
+        login_request = ET.SubElement(body, '{http://gamespy.net/AuthService/}LoginPs3CertResult')
+
+        results = OrderedDict()
+        results['authToken'] = auth_data["token"]
+        results['partnerChallenge'] = auth_data["challenge"]
+
+        
+
+        self.WritePS3AuthResponse(login_request, results)
+        
+        return resp_xml
     def do_POST(self):
         content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
         request_body = self.rfile.read(content_length) # <--- Gets the data itself
@@ -123,7 +157,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         login_profile_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginProfile')
         login_remoteauth_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginRemoteAuth')
         login_uniquenick_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginUniqueNick')
-        #login_ps3_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginPs3Cert')
+        login_ps3_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginPs3Cert')
 
         if login_remoteauth_tree != None:
             resp = self.handle_remoteauth_login(login_remoteauth_tree)
@@ -131,6 +165,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             resp = self.handle_uniquenick_login(login_uniquenick_tree)
         elif login_profile_tree != None:
             resp = self.handle_profile_login(login_profile_tree)
+        elif login_ps3_tree != None:
+            resp = self.handle_ps3auth_login(login_ps3_tree)
         else:
             resp = None
 
@@ -180,6 +216,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         response_code_node.text = str(code)
 
+    def WritePS3AuthResponse(self, xml_tree, response):
+        response_code_node = ET.SubElement(xml_tree, '{http://gamespy.net/AuthService/}responseCode')
+        response_code_node.text = str(self.LOGIN_RESPONSE_SUCCESS)
+
+        response_code_node = ET.SubElement(xml_tree, '{http://gamespy.net/AuthService/}authToken')
+        response_code_node.text = response["authToken"]
+
+        response_code_node = ET.SubElement(xml_tree, '{http://gamespy.net/AuthService/}partnerChallenge')
+        response_code_node.text = response["partnerChallenge"]
     def WriteAuthResponse(self, xml_tree, response):
 
         if response == None or 'error' in response or 'profile' not in response:
