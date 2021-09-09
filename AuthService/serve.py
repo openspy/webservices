@@ -148,6 +148,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
         request_body = self.rfile.read(content_length) # <--- Gets the data itself
 
+        request_body = request_body.decode('utf8').replace("<s1", "<ns1").replace("</s1", "</ns1") #weird ps3 fix
+
         ET.register_namespace('SOAP-ENV',"http://schemas.xmlsoap.org/soap/envelope/")
         ET.register_namespace('SOAP-ENC',"http://schemas.xmlsoap.org/soap/encoding/")
         ET.register_namespace('xsi',"http://www.w3.org/2001/XMLSchema-instance")
