@@ -5,19 +5,28 @@ import xml.etree.ElementTree as ET
 from collections import OrderedDict
 import binascii
 import hashlib
-import rsa
 import struct, os
-from CreateRecord import CreateRecordHandler
-from GetRecordLimit import GetRecordLimitHandler
-from RateRecord import RateRecordHandler
-from GetSpecificRecords import GetSpecificRecordsHandler
-from GetMyRecords import GetMyRecordsHandler
-from SearchForRecords import SearchForRecordsHandler
-from DeleteRecord import DeleteRecordHandler
-from GetRandomRecords import GetRandomRecordsHandler
+from handlers.CreateRecord import CreateRecordHandler
+from handlers.UpdateRecord import UpdateRecordHandler
+from handlers.GetRecordLimit import GetRecordLimitHandler
+from handlers.RateRecord import RateRecordHandler
+from handlers.GetSpecificRecords import GetSpecificRecordsHandler
+from handlers.GetMyRecords import GetMyRecordsHandler
+from handlers.SearchForRecords import SearchForRecordsHandler
+from handlers.DeleteRecord import DeleteRecordHandler
+from handlers.GetRandomRecords import GetRandomRecordsHandler
+from modules.Storage import StorageManager
+import pymongo
+import redis
+
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    mongoConnection = pymongo.MongoClient(os.environ.get('MONGODB_URI'))
+    storageDatabase = mongoConnection["StorageService"]
+    loginTicketCache = redis.from_url(os.environ.get('REDIS_URL'), db=3)
+
     createRecordHandler = CreateRecordHandler()
+    updateRecordHandler = UpdateRecordHandler()
     getRecordLimitHandler = GetRecordLimitHandler()
     rateRecordHandler = RateRecordHandler()
     getSpecificRecordsHandler = GetSpecificRecordsHandler()
@@ -25,6 +34,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     searchForRecordsHandler = SearchForRecordsHandler()
     deleteRecordHandler = DeleteRecordHandler()
     getRandomRecordsHandler = GetRandomRecordsHandler()
+
+    storageManager = StorageManager(storageDatabase, loginTicketCache)
 
     def do_GET(self):
         self.send_response(HTTPStatus.NOT_FOUND)
@@ -50,19 +61,21 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         result = None
 
         if request_type == "\"http://gamespy.net/sake/CreateRecord\"":
-            result = self.createRecordHandler.Handle(self, tree)
+            result = self.createRecordHandler.Handle(self, tree, self.storageManager)
+        elif request_type == "\"http://gamespy.net/sake/UpdateRecord\"":
+            result = self.updateRecordHandler.Handle(self, tree, self.storageManager)
         elif request_type == "\"http://gamespy.net/sake/GetRecordLimit\"":
             result = self.getRecordLimitHandler.Handle(self, tree)
         elif request_type == "\"http://gamespy.net/sake/RateRecord\"":
             result = self.rateRecordHandler.Handle(self, tree)
         elif request_type == "\"http://gamespy.net/sake/GetSpecificRecords\"":
-            result = self.getSpecificRecordsHandler.Handle(self, tree)
+            result = self.getSpecificRecordsHandler.Handle(self, tree, self.storageManager)
         elif request_type == "\"http://gamespy.net/sake/GetMyRecords\"":
-            result = self.getSpecificRecordsHandler.Handle(self, tree)
+            result = self.getMyRecordsHandler.Handle(self, tree, self.storageManager)
         elif request_type == "\"http://gamespy.net/sake/SearchForRecords\"":
             result = self.searchForRecordsHandler.Handle(self, tree)
         elif request_type == "\"http://gamespy.net/sake/DeleteRecord\"":
-            result = self.deleteRecordHandler.Handle(self, tree)
+            result = self.deleteRecordHandler.Handle(self, tree, self.storageManager)
         elif request_type == "\"http://gamespy.net/sake/GetRandomRecords\"":
             result = self.getRandomRecordsHandler.Handle(self, tree)
         else:
