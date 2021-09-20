@@ -1,3 +1,4 @@
+import base64
 import xml.etree.ElementTree as ET
 
 from modules.Exceptions import RecordNotFoundException, TableNotFoundException 
@@ -92,3 +93,28 @@ class StorageManager():
         for item in results:
             output.append(item)
         return output
+    def UploadFile(self, gameid, profileid, file_name, file_data):
+        
+        collection_name = "files_{}".format(gameid)
+        collection = self.dbCtx[collection_name]
+
+        file_id = self.GenerateRecordId(self.dbCtx, collection_name)
+
+        base46_data = base64.b64encode(file_data)
+        base64_string = base46_data.decode('ascii')
+        file_data = {"gameid": gameid, "profileid": profileid, "name": file_name, "fileid": file_id, "data": base64_string}
+
+        collection.insert_one(file_data)
+
+        return file_id
+    def DownloadFile(self, gameid, profileid, fileid):
+        collection_name = "files_{}".format(gameid)
+        collection = self.dbCtx[collection_name]
+
+        match = {"gameid": gameid, "profileid": profileid, "fileid": fileid}
+        file_result = collection.find_one(match)
+        if file_result == None:
+            return file_result
+
+        result_data = {"name": file_result["name"], "data": base64.b64decode(file_result["data"])}
+        return result_data

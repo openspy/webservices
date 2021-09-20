@@ -15,6 +15,7 @@ from handlers.GetMyRecords import GetMyRecordsHandler
 from handlers.SearchForRecords import SearchForRecordsHandler
 from handlers.DeleteRecord import DeleteRecordHandler
 from handlers.GetRandomRecords import GetRandomRecordsHandler
+from handlers.FileStorage import FileUploadHandler, FileDownloadHandler
 from modules.Storage import StorageManager
 import pymongo
 import redis
@@ -35,13 +36,28 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     deleteRecordHandler = DeleteRecordHandler()
     getRandomRecordsHandler = GetRandomRecordsHandler()
 
+    fileUploadHandler = FileUploadHandler()
+    fileDownloadHandler = FileDownloadHandler()
+
     storageManager = StorageManager(storageDatabase, loginTicketCache)
 
     def do_GET(self):
+        if self.path.startswith("/SakeFileServer/download.aspx"):
+            self.handle_SakeFileServer()
+            return
         self.send_response(HTTPStatus.NOT_FOUND)
         self.end_headers()
 
+    def handle_SakeFileServer(self):
+        if self.path.startswith("/SakeFileServer/upload.aspx"):
+            self.fileUploadHandler.Handle(self, self.storageManager)
+        elif self.path.startswith("/SakeFileServer/download.aspx"):
+            self.fileDownloadHandler.Handle(self, self.storageManager)
     def do_POST(self):
+        if self.path.startswith("/SakeFileServer/upload.aspx"):
+            self.handle_SakeFileServer()
+            return
+
         content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
         request_body = self.rfile.read(content_length) # <--- Gets the data itself
 
