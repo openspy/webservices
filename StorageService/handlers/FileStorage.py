@@ -1,8 +1,10 @@
 import cgi
 from modules.Exceptions import SAKEException 
+from hooks.HookResolver import HookResolver
 
 from http import HTTPStatus
 from urllib.parse import urlparse, parse_qs
+
 class FileUploadHandler():
     def returnFileError(self, httpHandler):
         httpHandler.send_response(HTTPStatus.BAD_REQUEST)
@@ -33,6 +35,8 @@ class FileUploadHandler():
             if gameid == None or profileid == None:
                 self.returnFileError(httpHandler)
                 return
+            hookResolver = HookResolver()
+            resolver = hookResolver.GetResolverForGameId(gameid)
 
             success = False
             file_id = storageManager.UploadFile(gameid, profileid, file_name, file_raw_data)
@@ -40,6 +44,8 @@ class FileUploadHandler():
                 success = True
                 httpHandler.send_response(HTTPStatus.OK)
                 httpHandler.send_header('Sake-File-Id',str(file_id))
+                if resolver != None:
+                    resolver.OnUploadFile(file_id, profileid, file_name, file_raw_data, storageManager)
             else:
                 httpHandler.send_response(HTTPStatus.BAD_REQUEST)
 
