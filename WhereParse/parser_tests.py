@@ -1,5 +1,7 @@
 import unittest
 from TokenParser import TokenParser
+from MongoTokenConverter import MongoTokenConverter
+from RPNConverter import RPNConverter
 
 class TestStringMethods(unittest.TestCase):
 
@@ -12,4 +14,13 @@ class TestStringMethods(unittest.TestCase):
 #if __name__ == '__main__':
     #unittest.main()
 parser = TokenParser()
-result = parser.ParseTokens("ownerid=333 AND filename=='MPStorage'")
+#result = parser.ParseTokens("ownerid=333 AND filename=='MPStorage'")
+result = parser.ParseTokens("ownerid>333 AND filename=='test' OR test==1")
+
+rpnConverter = RPNConverter()
+result = rpnConverter.Convert(result)
+
+mongoConverter = MongoTokenConverter()
+
+result = mongoConverter.ConvertTokenList(result)
+print("mongo query: {}\n".format(result.GetMongoDocument()))

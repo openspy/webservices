@@ -1,31 +1,52 @@
 #values
-class ValueToken():
+class OperandToken():
     value = None
     def __init__(self):
         pass
-class IntToken():
+class IntToken(OperandToken):
     def __init__(self, value):
         self.value = value
-class StringToken():
+class StringToken(OperandToken):
     def __init__(self, value):
-        print("StringToken: {}\n".format(value))
         self.value = value
-class VariableToken():
+class VariableToken(OperandToken):
     def __init__(self, value):
-        print("VariableToken: {}\n".format(value))
         self.value = value
 
 
 #operands
-class OperandToken():
+class OperatorToken():
+    precedence = 0
     def __init__(self):
+        self.precedence = 0
         pass
-class AndOperand(OperandToken):
+    def GetPrecedence(self):
+        return self.precedence
+class AndOperand(OperatorToken):
     def __init__(self):
+        self.precedence = 2
         pass
-class OrOperand(OperandToken):
+class OrOperand(OperatorToken):
     def __init__(self):
+        self.precedence = 1
         pass
-class EqualsOperand(OperandToken):
+class EqualsOperand(OperatorToken):
     def __init__(self):
+        self.precedence = 3
+        pass
+class LessOperand(OperatorToken):
+    def __init__(self):
+        self.precedence = 3
+        pass
+class LessEqualsOperand(OperatorToken):
+    def __init__(self):
+        self.precedence = 3
+        pass
+class GreaterOperand(OperatorToken):
+    def __init__(self):
+        self.precedence = 3
+        pass
+class GreaterEqualsOperand(OperatorToken):
+    def __init__(self):
+        self.precedence = 3
         pass

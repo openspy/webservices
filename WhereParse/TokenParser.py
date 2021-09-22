@@ -1,5 +1,5 @@
 from enum import Enum
-from Token import StringToken, IntToken, VariableToken, EqualsOperand, AndOperand
+from Token import StringToken, IntToken, VariableToken, EqualsOperand, AndOperand, OrOperand, GreaterEqualsOperand, GreaterOperand, LessEqualsOperand, LessOperand
 class ParserState(Enum):
     READ_VALUE = 1 #beginning, prior to any detection
     READ_VARIABLE = 2
@@ -15,6 +15,11 @@ class TokenType(Enum):
     TOKEN_TYPE_AND = 5
     TOKEN_TYPE_OR = 6
 
+    TOKEN_TYPE_GREATER = 7
+    TOKEN_TYPE_GREATER_EQUAL = 8
+    TOKEN_TYPE_LESS = 9
+    TOKEN_TYPE_LESS_EQUAL = 10
+
 
 class TokenParser():
     state = ParserState.READ_VALUE
@@ -22,6 +27,7 @@ class TokenParser():
     skip_len = 0
     read_accumulator = ""
     token_list = []
+    in_escape_sequence = False
     def isVariableChar(self, c, start):
         if c == None: return False
         if start:
@@ -38,9 +44,13 @@ class TokenParser():
             "==": TokenType.TOKEN_TYPE_EQUALS,
             "=": TokenType.TOKEN_TYPE_EQUALS,
             "&&": TokenType.TOKEN_TYPE_AND,
-            "and": TokenType.TOKEN_TYPE_AND
+            "and": TokenType.TOKEN_TYPE_AND,
             "||": TokenType.TOKEN_TYPE_OR,
-            "or": TokenType.TOKEN_TYPE_OR
+            "or": TokenType.TOKEN_TYPE_OR,
+            ">=": TokenType.TOKEN_TYPE_GREATER_EQUAL,
+            ">": TokenType.TOKEN_TYPE_GREATER,
+            "<=": TokenType.TOKEN_TYPE_LESS_EQUAL,
+            "<": TokenType.TOKEN_TYPE_LESS,
         }
         for item in operand_map:
             item_len = len(item)
@@ -65,8 +75,16 @@ class TokenParser():
             return EqualsOperand()
         elif tokentype == TokenType.TOKEN_TYPE_AND:
             return AndOperand()
-        elif tokentype == TokenParser.TOKEN_TYPE_OR:
+        elif tokentype == TokenType.TOKEN_TYPE_OR:
             return OrOperand()
+        elif tokentype == TokenType.TOKEN_TYPE_GREATER:
+            return GreaterOperand()
+        elif tokentype == TokenType.TOKEN_TYPE_GREATER_EQUAL:
+            return GreaterEqualsOperand()
+        elif tokentype == TokenType.TOKEN_TYPE_LESS:
+            return LessOperand()
+        elif tokentype == TokenType.TOKEN_TYPE_LESS_EQUAL:
+            return LessEqualsOperand()
         return None
     def HandleChar(self, c):
         if c == None:
@@ -121,5 +139,4 @@ class TokenParser():
         while current_token_string != None and len(current_token_string) > 0:            
             skip_len = self.ReadSingleToken(current_token_string)
             current_token_string = current_token_string[skip_len:]
-        print("token list: {}\n".format(self.token_list))
         return self.token_list
