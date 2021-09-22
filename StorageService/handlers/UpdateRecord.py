@@ -19,9 +19,11 @@ class UpdateRecordHandler():
         
         record_fields = values_node.findall('{http://gamespy.net/sake}RecordField')
 
-        record_entries = []
+        record_entries = {}
         for record in record_fields:            
-            record_entries.append(inputHelper.GetRecordEntry(record))
+            entry = inputHelper.GetRecordEntry(record)
+            record_entries[entry["name"]] = entry
+            del entry["name"]
 
 
         resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')

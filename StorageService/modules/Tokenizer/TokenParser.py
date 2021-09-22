@@ -1,5 +1,5 @@
 from enum import Enum
-from Token import StringToken, IntToken, VariableToken, EqualsOperand, AndOperand, OrOperand, GreaterEqualsOperand, GreaterOperand, LessEqualsOperand, LessOperand
+from modules.Tokenizer.Token import StringToken, IntToken, VariableToken, EqualsOperand, AndOperand, OrOperand, GreaterEqualsOperand, GreaterOperand, LessEqualsOperand, LessOperand
 class ParserState(Enum):
     READ_VALUE = 1 #beginning, prior to any detection
     READ_VARIABLE = 2
@@ -137,6 +137,7 @@ class TokenParser():
         return self.skip_len
 
     def ParseTokens(self, token_string):
+        self.token_list = []
         current_token_string = token_string
         skip_len = 0
         while current_token_string != None and len(current_token_string) > 0:            

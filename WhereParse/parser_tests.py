@@ -15,7 +15,8 @@ class TestStringMethods(unittest.TestCase):
     #unittest.main()
 parser = TokenParser()
 #result = parser.ParseTokens("ownerid=333 AND filename=='MPStorage'")
-result = parser.ParseTokens("ownerid>333 AND filename=='test' OR test==1")
+#result = parser.ParseTokens("ownerid>333 AND filename=='test' OR test==1")
+result = parser.ParseTokens("score < 50")
 
 rpnConverter = RPNConverter()
 result = rpnConverter.Convert(result)

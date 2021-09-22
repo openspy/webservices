@@ -1,5 +1,5 @@
-from Token import OperatorToken, OperandToken
-from Token import StringToken, IntToken, VariableToken, EqualsOperand, AndOperand, OrOperand, LessOperand, LessEqualsOperand, GreaterOperand, GreaterEqualsOperand
+from modules.Tokenizer.Token import OperatorToken, OperandToken
+from modules.Tokenizer.Token import StringToken, IntToken, VariableToken, EqualsOperand, AndOperand, OrOperand, LessOperand, LessEqualsOperand, GreaterOperand, GreaterEqualsOperand
 class MongoToken():
     def __init__(self):
         pass
@@ -9,7 +9,7 @@ class MongoVariable(MongoToken):
     def __init__(self, name):
         self.name = name
     def GetMongoDocument(self):
-        return "$data.name.{}".format(self.name)
+        return "data.{}.value".format(self.name)
 class MongoInt(MongoToken):
     def __init__(self, value):
         self.value = value
@@ -25,7 +25,7 @@ class MongoEqualsOperator(MongoToken):
         self.lvalue = lvalue
         self.rvalue = rvalue
     def GetMongoDocument(self):
-        return {"$eq": [self.lvalue.GetMongoDocument(), self.rvalue.GetMongoDocument()]}
+        return {self.lvalue.GetMongoDocument() : {"$eq":  self.rvalue.GetMongoDocument()}}
 class MongoAndOperator(MongoToken):
     def __init__(self, lvalue, rvalue):
         self.lvalue = lvalue

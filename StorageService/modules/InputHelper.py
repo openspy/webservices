@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from dateutil import parser
 from modules.Exceptions import LoginTicketInvalidException 
+from modules.ReservedKeys import IsReservedKey
 class InputHelper():
     def LoadAuthInfo(self, xml_tree, storageManager):
         auth_info = {}
@@ -91,11 +92,11 @@ class InputHelper():
 
         value_node = ET.SubElement(value_data_node, '{http://gamespy.net/sake/}value')
         value_node.text = str(record[key])
-    def WriteField(self, xml_tree, field):
+    def WriteField(self, xml_tree, field, name):
         recordfield_node = ET.SubElement(xml_tree, '{http://gamespy.net/sake/}RecordValue')
 
         name_node = ET.SubElement(recordfield_node, '{http://gamespy.net/sake/}name')
-        name_node.text = field["name"]
+        name_node.text = name
 
         if field["type"] == "ascii":
             value_data_node = ET.SubElement(recordfield_node, '{http://gamespy.net/sake/}asciiStringValue')
@@ -121,21 +122,14 @@ class InputHelper():
         value_node = ET.SubElement(value_data_node, '{http://gamespy.net/sake/}value')
         value_node.text = str(field["value"])
 
-    def findField(self, data, fieldName):
-        for item in data:
-            if item["name"] == fieldName:
-                return item
-        return None
     def serializeResults(self, fields, db_results, values_node):
-        global_keys = ["ownerid", "tableid", "recordid"] #XXX: share this value
         for result in db_results:
             result_node = ET.SubElement(values_node, '{http://gamespy.net/sake/}ArrayOfRecordValue')
             for field in fields:
-                if field in global_keys:
+                if IsReservedKey(field):
                     self.WriteLiteralIntField(result_node, field, result)
                 else:
-                    data_field = self.findField(result["data"], field)
-                    if data_field != None:
-                        self.WriteField(result_node, data_field)
+                    if field in result["data"]:
+                        self.WriteField(result_node, result["data"][field], field)
 
                     

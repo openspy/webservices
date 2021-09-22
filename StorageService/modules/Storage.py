@@ -2,6 +2,11 @@ import base64
 import xml.etree.ElementTree as ET
 
 from modules.Exceptions import RecordNotFoundException, TableNotFoundException 
+from modules.Tokenizer.TokenParser import TokenParser
+from modules.Tokenizer.MongoTokenConverter import MongoTokenConverter
+from modules.Tokenizer.RPNConverter import RPNConverter
+from modules.Tokenizer.SortByParse import MongoSortFactory
+
 class StorageManager():
     def __init__(self, dbCtx, loginTicketCache):
         self.dbCtx = dbCtx
@@ -30,7 +35,6 @@ class StorageManager():
         recordId = self.GenerateRecordId(self.dbCtx, collection_name)
         collection = self.dbCtx[collection_name]
 
-        data = records
         db_record = {"gameid": auth_info["gameid"], "ownerid": auth_info["profileId"], "tableid": tableId, "recordid": recordId, "data": records}
 
         match = {"gameid": auth_info["gameid"], "ownerid": auth_info["profileId"], "tableid": tableId}
@@ -46,7 +50,6 @@ class StorageManager():
         collection_name = self.GetRecordCollectionName(auth_info["gameid"], tableId)
         collection = self.dbCtx[collection_name]
 
-        data = records
         update_statement = {"$set": {"data": records}}
 
         match = {"gameid": auth_info["gameid"], "ownerid": auth_info["profileId"], "tableid": tableId, "recordid": recordId}
@@ -93,6 +96,51 @@ class StorageManager():
         for item in results:
             output.append(item)
         return output
+    def ConvertFilter(self, filterString):
+        parser = TokenParser()
+        result = parser.ParseTokens(filterString)
+
+        rpnConverter = RPNConverter()
+        result = rpnConverter.Convert(result)
+
+        mongoConverter = MongoTokenConverter()
+
+        return mongoConverter.ConvertTokenList(result).GetMongoDocument()
+
+    def SearchRecords(self, auth_info, tableId, fields, filterString, sortString, queryOffset, maxRows):
+        if not self.CollectionExists(self.dbCtx, auth_info["gameid"], tableId):
+            raise TableNotFoundException()
+
+        pipeline = []
+
+        if filterString != None:
+            match_contents = self.ConvertFilter(filterString)
+            match_entry = {"$match": match_contents}
+            pipeline.append(match_entry)
+        if sortString != None:
+            sortFactory = MongoSortFactory()
+            sort_data = sortFactory.Sort(sortString)
+            sort_entry = {"$sort": sort_data}
+            pipeline.append(sort_entry)
+
+        if queryOffset != None:
+            skip_entry = {"$skip": queryOffset}
+            pipeline.append(skip_entry)
+
+        if maxRows != None:
+            skip_entry = {"$limit": maxRows}
+            pipeline.append(skip_entry)
+            
+
+        collection_name = self.GetRecordCollectionName(auth_info["gameid"], tableId)
+        collection = self.dbCtx[collection_name]
+
+        results = collection.aggregate(pipeline)
+        output = []
+        for item in results:
+            output.append(item)
+        return output
+
     def UploadFile(self, gameid, profileid, file_name, file_data):
         
         collection_name = "files_{}".format(gameid)

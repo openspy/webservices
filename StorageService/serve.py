@@ -89,7 +89,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         elif request_type == "\"http://gamespy.net/sake/GetMyRecords\"":
             result = self.getMyRecordsHandler.Handle(self, tree, self.storageManager)
         elif request_type == "\"http://gamespy.net/sake/SearchForRecords\"":
-            result = self.searchForRecordsHandler.Handle(self, tree)
+            result = self.searchForRecordsHandler.Handle(self, tree, self.storageManager)
         elif request_type == "\"http://gamespy.net/sake/DeleteRecord\"":
             result = self.deleteRecordHandler.Handle(self, tree, self.storageManager)
         elif request_type == "\"http://gamespy.net/sake/GetRandomRecords\"":
