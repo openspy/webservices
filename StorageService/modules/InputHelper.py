@@ -127,7 +127,7 @@ class InputHelper():
                 return item
         return None
     def serializeResults(self, fields, db_results, values_node):
-        global_keys = ["ownerid", "tableid", "recordid"]
+        global_keys = ["ownerid", "tableid", "recordid"] #XXX: share this value
         for result in db_results:
             result_node = ET.SubElement(values_node, '{http://gamespy.net/sake/}ArrayOfRecordValue')
             for field in fields:
