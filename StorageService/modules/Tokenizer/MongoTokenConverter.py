@@ -1,5 +1,6 @@
 from modules.Tokenizer.Token import OperatorToken, OperandToken
 from modules.Tokenizer.Token import StringToken, IntToken, VariableToken, EqualsOperand, AndOperand, OrOperand, LessOperand, LessEqualsOperand, GreaterOperand, GreaterEqualsOperand
+from modules.ReservedKeys import IsReservedKey
 class MongoToken():
     def __init__(self):
         pass
@@ -9,7 +10,10 @@ class MongoVariable(MongoToken):
     def __init__(self, name):
         self.name = name
     def GetMongoDocument(self):
-        return "data.{}.value".format(self.name)
+        if IsReservedKey(self.name):
+            return self.name
+        else:
+            return "data.{}.value".format(self.name)
 class MongoInt(MongoToken):
     def __init__(self, value):
         self.value = value
