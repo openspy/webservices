@@ -14,6 +14,8 @@ API_KEY = os.environ.get('API_KEY')
 PRIVATE_KEY_PATH = os.environ.get('AUTHSERVICES_PRIVKEY_PATH')
 AUTH_TOKEN_EXPIRE_TIME = int(os.environ.get('AUTH_TOKEN_EXPIRE_TIME'))
 
+PEERKEY_KEY_PATH = os.environ.get('AUTHSERVICES_PEERKEY_KEY_PATH')
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     LOGIN_RESPONSE_SUCCESS = 0
     LOGIN_RESPONSE_SERVERINITFAILED = 1
@@ -28,6 +30,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     private_key_file = open(PRIVATE_KEY_PATH,"r")
     keydata = private_key_file.read()
     auth_private_key = rsa.PrivateKey.load_pkcs1(keydata)
+
+    peerkey_private_key_file = open(PEERKEY_KEY_PATH,"r")
+    peerkey_keydata = peerkey_private_key_file.read()
+    peerkey_private_key = rsa.PrivateKey.load_pkcs1(peerkey_keydata)
 
     def do_GET(self):
         self.send_response(HTTPStatus.NOT_FOUND)
@@ -233,8 +239,24 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.WriteErrorResponse(xml_tree, response)
             return
 
+        peerkey_data = {}
+        rsa_exponent = hex(self.peerkey_private_key.e)
+
+
+        #always output even hex string
+        exponent = "{}{}".format("0" if len(rsa_exponent[2:]) % 2 else "", rsa_exponent[2:])
+        peerkey_data['exponent'] = exponent
+
+        rsa_modulus = hex(self.peerkey_private_key.n)
+        modulus = "{}{}".format("0" if len(rsa_modulus[2:]) % 2 else "", rsa_modulus[2:])
+        peerkey_data['modulus'] = modulus
+
+        private_data = hex(self.peerkey_private_key.d)
+        private = "{}{}".format("0" if len(private_data[2:]) % 2 else "", private_data[2:])
+        peerkey_data['private'] = private
+
         peerkeyprivate_node = ET.SubElement(xml_tree, '{http://gamespy.net/AuthService/}peerkeyprivate')
-        peerkeyprivate_node.text = '0'
+        peerkeyprivate_node.text = peerkey_data['private']
 
         response_code_node = ET.SubElement(xml_tree, '{http://gamespy.net/AuthService/}responseCode')
         response_code_node.text = str(self.LOGIN_RESPONSE_SUCCESS)
@@ -256,29 +278,21 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         #encrypted server data
         peerkeymodulus_node = ET.SubElement(certificate_node, '{http://gamespy.net/AuthService/}peerkeymodulus')
-
-        rsa_modulus = str(self.auth_private_key.n)
-        peerkeymodulus_node.text = rsa_modulus[-128:].upper()
+        peerkeymodulus_node.text = peerkey_data['modulus']
 
         peerkeyexponent_node = ET.SubElement(certificate_node, '{http://gamespy.net/AuthService/}peerkeyexponent')
-        rsa_exponent = hex(self.auth_private_key.e)
-        peerkeyexponent_node.text = rsa_exponent[2:]
+        peerkeyexponent_node.text = peerkey_data['exponent']
 
         node = ET.SubElement(certificate_node, '{}{}'.format("{http://gamespy.net/AuthService/}",'serverdata'))
         server_data = os.urandom(128)
         node.text = binascii.hexlify(server_data).decode('utf8')
 
         node = ET.SubElement(certificate_node, '{}{}'.format("{http://gamespy.net/AuthService/}",'signature'))
-        node.text = self.generate_signature(0,1, response_dict, server_data, True)
+        node.text = self.generate_signature(0,1, response_dict, server_data, True, peerkey_data)
 
-    def generate_signature(self, length, version, auth_user_dir, server_data, use_md5):
+    def generate_signature(self, length, version, auth_user_dir, server_data, use_md5, peerkey_data):
 
-        peerkey = {}
-        rsa_exponent = hex(self.auth_private_key.e)
-        peerkey['exponent'] = rsa_exponent[2:]
 
-        rsa_modulus = str(self.auth_private_key.n)
-        peerkey['modulus'] = rsa_modulus[-128:].upper()
 
         buffer = struct.pack("I", length)
         buffer += struct.pack("I", version)
@@ -292,8 +306,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         buffer += auth_user_dir['uniquenick'].encode('utf8')
         buffer += auth_user_dir['cdkeyhash'].encode('utf8')
 
-        buffer += binascii.unhexlify(peerkey['modulus'])
-        buffer += binascii.unhexlify("0{}".format(peerkey['exponent']))
+        buffer += binascii.unhexlify(peerkey_data['modulus'])
+        buffer += binascii.unhexlify(peerkey_data['exponent'])
         buffer += server_data
 
         hash_algo = 'MD5'
