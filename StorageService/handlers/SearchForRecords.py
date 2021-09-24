@@ -7,7 +7,6 @@ class SearchForRecordsHandler():
         inputHelper = InputHelper.InputHelper()
         request_root = xml_tree.find('.//{http://gamespy.net/sake}SearchForRecords')
         
-        auth_info = inputHelper.LoadAuthInfo(request_root, storageManager)
         tableid_node = request_root.find('{http://gamespy.net/sake}tableid')
         tableid = tableid_node.text
 
@@ -43,6 +42,7 @@ class SearchForRecordsHandler():
         result.text = "Success"
 
         try:
+            auth_info = inputHelper.LoadAuthInfo(request_root, storageManager)
             db_results = storageManager.SearchRecords(auth_info, tableid, fields, filterString, sortString, queryOffset, maxRows)
             result.text = "Success"
 

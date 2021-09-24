@@ -8,7 +8,6 @@ class GetMyRecordsHandler():
 
         request_root = xml_tree.find('.//{http://gamespy.net/sake}GetMyRecords')
         
-        auth_info = inputHelper.LoadAuthInfo(request_root, storageManager)
         tableid_node = request_root.find('{http://gamespy.net/sake}tableid')
         tableid = tableid_node.text
 
@@ -25,6 +24,7 @@ class GetMyRecordsHandler():
 
 
         try:
+            auth_info = inputHelper.LoadAuthInfo(request_root, storageManager)
             db_results = storageManager.FindAllRecordsByProfileid(auth_info, tableid)
             result.text = "Success"
 

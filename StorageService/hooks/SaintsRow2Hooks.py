@@ -1,7 +1,7 @@
 from hooks.BaseHook import BaseHook
 class SaintsRow2Hooks(BaseHook):
     def __init__(self):
-        self.gameid = 2110
+        pass
     def OnUploadFile(self, file_id, profileid, file_name, file_raw_data, storageManager):
         table_name = "user_file_storage"
 

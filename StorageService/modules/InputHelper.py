@@ -123,9 +123,14 @@ class InputHelper():
         value_node.text = str(field["value"])
 
     def serializeResults(self, fields, db_results, values_node):
+
+        row = 0
         for result in db_results:
+            
             result_node = ET.SubElement(values_node, '{http://gamespy.net/sake/}ArrayOfRecordValue')
+            row = row +1
             for field in fields:
+                result["row"] = row
                 if IsReservedKey(field):
                     self.WriteLiteralIntField(result_node, field, result)
                 else:
