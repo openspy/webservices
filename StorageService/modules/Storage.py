@@ -146,13 +146,24 @@ class StorageManager():
         collection_name = "files_{}".format(gameid)
         collection = self.dbCtx[collection_name]
 
-        file_id = self.GenerateRecordId(self.dbCtx, collection_name)
+        match = {"gameid": gameid, "profileid": profileid, "name": file_name}
 
         base46_data = base64.b64encode(file_data)
         base64_string = base46_data.decode('ascii')
-        file_data = {"gameid": gameid, "profileid": profileid, "name": file_name, "fileid": file_id, "data": base64_string}
+        
+        file_result = collection.find_one(match, sort=[('fileid', -1)])
+        if file_result == None:
+            file_id = self.GenerateRecordId(self.dbCtx, collection_name)
+            file_data = {"gameid": gameid, "profileid": profileid, "name": file_name, "fileid": file_id, "data": base64_string}
+            collection.insert_one(file_data)
+        else:
+            match = {"_id": file_result["_id"]}
+            update_statement = {"$set": {"data": base64_string}}
+            file_id = file_result["fileid"]
 
-        collection.insert_one(file_data)
+            result = collection.update_one(match, update_statement)
+            if result.matched_count == 0:
+                raise RecordNotFoundException()
 
         return file_id
     def DownloadFile(self, gameid, profileid, fileid):
