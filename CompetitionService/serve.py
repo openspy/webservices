@@ -7,7 +7,6 @@ import binascii
 import hashlib
 import struct, os
 import pymongo
-import redis
 from handlers.CreateSession import CreateSessionHandler
 from handlers.CreateMatchlessSession import CreateMatchlessSessionHandler
 from handlers.SetReportIntention import SetReportIntentionHandler
@@ -23,7 +22,6 @@ import rsa
 class Handler(http.server.SimpleHTTPRequestHandler):
     mongoConnection = pymongo.MongoClient(os.environ.get('MONGODB_URI'))
     storageDatabase = mongoConnection["CompetitionService"]
-    loginTicketCache = redis.from_url(os.environ.get('REDIS_URL'), db=3)
     storageManager = StorageManager(storageDatabase)
 
     createSessionHandler = CreateSessionHandler()
