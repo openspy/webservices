@@ -1,21 +1,8 @@
 import xml.etree.ElementTree as ET
 import modules.InputHelper as InputHelper
-from modules.Exceptions import CompetitionException
+from modules.Exceptions import CompetitionException, MissingParameterException
 class CreateMatchlessSessionHandler():
     def Handle(self, httpHandler, xml_tree, storageManager):
-        inputHelper = InputHelper.InputHelper()
-
-        request_root = xml_tree.find('.//{http://gamespy.net/competition/}CreateMatchlessSession')
-        
-        certificate_node = request_root.find('{http://gamespy.net/competition/}certificate')
-
-        gameid_node = request_root.find('{http://gamespy.net/competition/}gameid')
-        gameid = int(gameid_node.text)
-
-
-        platformid_node = request_root.find('{http://gamespy.net/competition/}platformid')
-        platformid = int(platformid_node.text)
-
         resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')
         body = ET.SubElement(resp_xml, '{http://schemas.xmlsoap.org/soap/envelope/}Body')
         response = ET.SubElement(body, '{http://gamespy.net/competition/}CreateMatchlessResponse')
@@ -25,6 +12,27 @@ class CreateMatchlessSessionHandler():
 
 
         try:
+            inputHelper = InputHelper.InputHelper()
+
+            request_root = xml_tree.find('.//{http://gamespy.net/competition/}CreateMatchlessSession')
+            if request_root == None:
+                raise MissingParameterException()
+            
+            certificate_node = request_root.find('{http://gamespy.net/competition/}certificate')
+            if certificate_node == None:
+                raise MissingParameterException()
+
+            gameid_node = request_root.find('{http://gamespy.net/competition/}gameid')
+            if gameid_node == None:
+                raise MissingParameterException()
+            gameid = int(gameid_node.text)
+
+
+            platformid_node = request_root.find('{http://gamespy.net/competition/}platformid')
+            platformid = None
+            if platformid_node != None:
+                platformid = int(platformid_node.text)
+
             auth_info = inputHelper.ParseCertificate(certificate_node)
             connection_session_id = storageManager.CreateSession(auth_info["profileid"], gameid, platformid, True)
 

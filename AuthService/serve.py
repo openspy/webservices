@@ -151,47 +151,50 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         
         return resp_xml
     def do_POST(self):
-        content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
-        request_body = self.rfile.read(content_length) # <--- Gets the data itself
+        try:
+            content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
+            request_body = self.rfile.read(content_length) # <--- Gets the data itself
 
-        request_body = request_body.decode('utf8').replace("<s1", "<ns1").replace("</s1", "</ns1") #weird ps3 fix
+            request_body = request_body.decode('utf8').replace("<s1", "<ns1").replace("</s1", "</ns1") #weird ps3 fix
 
-        ET.register_namespace('SOAP-ENV',"http://schemas.xmlsoap.org/soap/envelope/")
-        ET.register_namespace('SOAP-ENC',"http://schemas.xmlsoap.org/soap/encoding/")
-        ET.register_namespace('xsi',"http://www.w3.org/2001/XMLSchema-instance")
-        ET.register_namespace('xsd',"http://www.w3.org/2001/XMLSchema")
-        tree = ET.ElementTree(ET.fromstring(request_body))
+            ET.register_namespace('SOAP-ENV',"http://schemas.xmlsoap.org/soap/envelope/")
+            ET.register_namespace('SOAP-ENC',"http://schemas.xmlsoap.org/soap/encoding/")
+            ET.register_namespace('xsi',"http://www.w3.org/2001/XMLSchema-instance")
+            ET.register_namespace('xsd',"http://www.w3.org/2001/XMLSchema")
+            tree = ET.ElementTree(ET.fromstring(request_body))
 
-        login_profile_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginProfile')
-        login_remoteauth_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginRemoteAuth')
-        login_uniquenick_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginUniqueNick')
-        login_ps3_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginPs3Cert')
+            login_profile_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginProfile')
+            login_remoteauth_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginRemoteAuth')
+            login_uniquenick_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginUniqueNick')
+            login_ps3_tree = tree.find('.//{http://gamespy.net/AuthService/}LoginPs3Cert')
 
-        if login_remoteauth_tree != None:
-            resp = self.handle_remoteauth_login(login_remoteauth_tree)
-        elif login_uniquenick_tree != None:
-            resp = self.handle_uniquenick_login(login_uniquenick_tree)
-        elif login_profile_tree != None:
-            resp = self.handle_profile_login(login_profile_tree)
-        elif login_ps3_tree != None:
-            resp = self.handle_ps3auth_login(login_ps3_tree)
-        else:
-            resp = None
+            if login_remoteauth_tree != None:
+                resp = self.handle_remoteauth_login(login_remoteauth_tree)
+            elif login_uniquenick_tree != None:
+                resp = self.handle_uniquenick_login(login_uniquenick_tree)
+            elif login_profile_tree != None:
+                resp = self.handle_profile_login(login_profile_tree)
+            elif login_ps3_tree != None:
+                resp = self.handle_ps3auth_login(login_ps3_tree)
+            else:
+                resp = None
 
 
-        result = None
-        if resp != None:
-            result = ET.tostring(resp, encoding='utf8', method='xml')            
-            self.send_response(HTTPStatus.OK)
-            self.send_header('Content-Type','application/xml')
-        else:
             result = None
-            self.send_response(HTTPStatus.BAD_REQUEST)
+            if resp != None:
+                result = ET.tostring(resp, encoding='utf8', method='xml')            
+                self.send_response(HTTPStatus.OK)
+                self.send_header('Content-Type','application/xml')
+            else:
+                result = None
+                self.send_response(HTTPStatus.BAD_REQUEST)
 
-        self.end_headers()
-        if result != None:
-            self.wfile.write(result)
-        
+            self.end_headers()
+            if result != None:
+                self.wfile.write(result)
+        except:
+            self.send_response(HTTPStatus.INTERNAL_SERVER_ERROR)
+            self.end_headers()
 
     def GetResponseProfileDict(self, response):
         result = OrderedDict()

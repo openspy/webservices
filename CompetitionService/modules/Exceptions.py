@@ -27,3 +27,6 @@ class InvalidCertificateException(CompetitionException):
 class InvalidReportException(CompetitionException):
     result = 7
     pass
+class MissingParameterException(CompetitionException):
+    result = 9
+    pass
