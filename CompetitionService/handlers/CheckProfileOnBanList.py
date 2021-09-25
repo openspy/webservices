@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 class CheckProfileOnBanListHandler():
-    def Handle(self, httpHandler, xml_tree):
+    def Handle(self, httpHandler, xml_tree, storageManager):
 
         request_root = xml_tree.find('.//{http://gamespy.net/competition/}CheckProfileOnBanList')
 
