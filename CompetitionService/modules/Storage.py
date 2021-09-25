@@ -11,12 +11,28 @@ class StorageManager():
 
         res = collection.insert_one(db_record)
         return str(res.inserted_id)
+    def GetReportIntention(self, profileid, gameid, session_id):
+        collection = self.dbCtx["session_intentions"]
+        match = {"gameid": gameid, "profileid": profileid, "session_id": ObjectId(session_id)}
+        report_intention = collection.find_one(match)
+        if report_intention == None:
+            return None
+        return report_intention
     def SetReportIntention(self, csid, profileid, gameid, authoritative):
         collection = self.dbCtx["session_intentions"]
+
+        report_record = self.GetReportIntention(profileid, gameid, csid)
+
+        output_id = None
+        if report_record != None:
+            output_id = str(report_record['_id'])
         
-        db_record = {"gameid": gameid, "profileid": profileid, "session_id": ObjectId(csid), "authoritative": authoritative, "created_at": datetime.now()}
-        res = collection.insert_one(db_record)
-        return str(res.inserted_id)
+        db_record = {"$set": {"gameid": gameid, "profileid": profileid, "session_id": ObjectId(csid), "authoritative": authoritative, "modified": datetime.now()}}
+        match_record = {"gameid": gameid, "profileid": profileid, "session_id": ObjectId(csid)}
+        res = collection.update_one(match_record, db_record, upsert=True)
+        if res.upserted_id != None:
+            output_id = str(res.upserted_id)
+        return output_id
     def SubmitReport(self, csid, profileid, gameid, authoritative, report_data, ccid):
         collection = self.dbCtx["sessions"]
 
