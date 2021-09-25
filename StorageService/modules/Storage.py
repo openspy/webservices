@@ -1,6 +1,8 @@
 import base64
 import xml.etree.ElementTree as ET
 
+from datetime import datetime
+
 from modules.Exceptions import RecordNotFoundException, TableNotFoundException 
 from modules.Tokenizer.TokenParser import TokenParser
 from modules.Tokenizer.MongoTokenConverter import MongoTokenConverter
@@ -35,7 +37,7 @@ class StorageManager():
         recordId = self.GenerateRecordId(self.dbCtx, collection_name)
         collection = self.dbCtx[collection_name]
 
-        db_record = {"gameid": auth_info["gameid"], "ownerid": auth_info["profileId"], "tableid": tableId, "recordid": recordId, "data": records}
+        db_record = {"gameid": auth_info["gameid"], "ownerid": auth_info["profileId"], "tableid": tableId, "recordid": recordId, "created_at": datetime.now(), "data": records}
 
         match = {"gameid": auth_info["gameid"], "ownerid": auth_info["profileId"], "tableid": tableId}
 
@@ -50,7 +52,7 @@ class StorageManager():
         collection_name = self.GetRecordCollectionName(auth_info["gameid"], tableId)
         collection = self.dbCtx[collection_name]
 
-        update_statement = {"$set": {"data": records}}
+        update_statement = {"$set": {"data": records, "modified_at": datetime.now()}}
 
         match = {"gameid": auth_info["gameid"], "ownerid": auth_info["profileId"], "tableid": tableId, "recordid": recordId}
         result = collection.update_one(match, update_statement)
@@ -154,11 +156,11 @@ class StorageManager():
         file_result = collection.find_one(match, sort=[('fileid', -1)])
         if file_result == None:
             file_id = self.GenerateRecordId(self.dbCtx, collection_name)
-            file_data = {"gameid": gameid, "profileid": profileid, "name": file_name, "fileid": file_id, "data": base64_string}
+            file_data = {"gameid": gameid, "profileid": profileid, "name": file_name, "fileid": file_id, "created_at": datetime.now(), "data": base64_string}
             collection.insert_one(file_data)
         else:
             match = {"_id": file_result["_id"]}
-            update_statement = {"$set": {"data": base64_string}}
+            update_statement = {"$set": {"data": base64_string, "modified_at": datetime.now()}}
             file_id = file_result["fileid"]
 
             result = collection.update_one(match, update_statement)
