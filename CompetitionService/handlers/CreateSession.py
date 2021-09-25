@@ -14,7 +14,9 @@ class CreateSessionHandler():
 
 
         platformid_node = request_root.find('{http://gamespy.net/competition/}platformid')
-        platformid = int(platformid_node.text)
+        platformid = None
+        if platformid_node != None:
+            platformid = int(platformid_node.text)
 
         resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')
         body = ET.SubElement(resp_xml, '{http://schemas.xmlsoap.org/soap/envelope/}Body')
