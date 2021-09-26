@@ -5,7 +5,7 @@ from modules.ScReportParser import ScReportParser
 from io import BytesIO
 from modules.Exceptions import CompetitionException, MissingParameterException
 class SubmitReportHandler():
-    def Handle(self, httpHandler, input_buffer, storageManager):
+    def Handle(self, input_buffer, storageManager):
         resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')
         body = ET.SubElement(resp_xml, '{http://schemas.xmlsoap.org/soap/envelope/}Body')
         response = ET.SubElement(body, '{http://gamespy.net/competition/}SubmitReportResponse')

@@ -3,7 +3,7 @@ import modules.InputHelper as InputHelper
 
 from modules.Exceptions import SAKEException 
 class UpdateRecordHandler():
-    def Handle(self, httpHandler, xml_tree, storageManager):
+    def Handle(self, xml_tree, storageManager):
 
         inputHelper = InputHelper.InputHelper()
 

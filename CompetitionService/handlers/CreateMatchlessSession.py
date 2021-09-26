@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import modules.InputHelper as InputHelper
 from modules.Exceptions import CompetitionException, MissingParameterException
 class CreateMatchlessSessionHandler():
-    def Handle(self, httpHandler, xml_tree, storageManager):
+    def Handle(self, xml_tree, storageManager):
         resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')
         body = ET.SubElement(resp_xml, '{http://schemas.xmlsoap.org/soap/envelope/}Body')
         response = ET.SubElement(body, '{http://gamespy.net/competition/}CreateMatchlessResponse')

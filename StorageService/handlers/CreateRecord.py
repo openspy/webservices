@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import modules.InputHelper as InputHelper
 from modules.Exceptions import SAKEException 
 class CreateRecordHandler():
-    def Handle(self, httpHandler, xml_tree, storageManager):
+    def Handle(self, xml_tree, storageManager):
 
         inputHelper = InputHelper.InputHelper()
 

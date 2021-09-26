@@ -3,7 +3,7 @@ import modules.InputHelper as InputHelper
 
 from modules.Exceptions import SAKEException 
 class SearchForRecordsHandler():
-    def Handle(self, httpHandler, xml_tree, storageManager):
+    def Handle(self, xml_tree, storageManager):
         inputHelper = InputHelper.InputHelper()
         request_root = xml_tree.find('.//{http://gamespy.net/sake}SearchForRecords')
         

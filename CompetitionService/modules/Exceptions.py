@@ -20,13 +20,9 @@
 
 class CompetitionException(Exception):
     result = 9
-    pass
 class InvalidCertificateException(CompetitionException):
     result = 8
-    pass
 class InvalidReportException(CompetitionException):
     result = 7
-    pass
 class MissingParameterException(CompetitionException):
     result = 9
-    pass

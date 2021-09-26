@@ -6,16 +6,15 @@ from http import HTTPStatus
 from urllib.parse import urlparse, parse_qs
 
 class FileUploadHandler():
-    def returnFileError(self, httpHandler):
-        httpHandler.send_response(HTTPStatus.BAD_REQUEST)
-        httpHandler.send_header('Sake-File-Result', 0)
-    def Handle(self, httpHandler, storageManager):
-        ctype, pdict = cgi.parse_header(httpHandler.headers['Content-Type'])
-        query_data = parse_qs(urlparse(httpHandler.path).query)
+    def returnFileError(self, environ, start_response):
+        start_response('400 BAD REQUEST', [('Sake-File-Result', 0)])
+    def Handle(self, environ, start_response, storageManager):
+        ctype, pdict = cgi.parse_header(environ['CONTENT_TYPE'])
+        query_data = parse_qs(environ['QUERY_STRING'])
 
         if ctype == 'multipart/form-data':
             pdict['boundary'] = bytes(pdict['boundary'], 'utf-8')
-            fields = cgi.parse_multipart(httpHandler.rfile, pdict)
+            fields = cgi.parse_multipart(environ['wsgi.input'], pdict)
             
             file_name = None
             for field in fields:
@@ -33,32 +32,32 @@ class FileUploadHandler():
                 profileid = int(profileid[0])
 
             if gameid == None or profileid == None:
-                self.returnFileError(httpHandler)
+                self.returnFileError(environ, start_response)
                 return
             hookResolver = HookResolver()
             resolver = hookResolver.GetResolverForGameId(gameid)
 
             success = False
             file_id = storageManager.UploadFile(gameid, profileid, file_name, file_raw_data)
+
+            headers = []
+            status = '400 BAD REQUEST'
             if file_id != 0:
                 success = True
-                httpHandler.send_response(HTTPStatus.OK)
-                httpHandler.send_header('Sake-File-Id',str(file_id))
+                status = '200 OK'
+                headers.append(('Sake-File-Id',str(file_id)))
                 if resolver != None:
                     resolver.OnUploadFile(file_id, profileid, file_name, file_raw_data, storageManager)
-            else:
-                httpHandler.send_response(HTTPStatus.BAD_REQUEST)
 
-            httpHandler.send_header('Sake-File-Result', 1 if success else 0)
-            httpHandler.end_headers()
+            headers.append(('Sake-File-Result', "1" if success else "0"))
+            start_response(status, headers)
 
 
 class FileDownloadHandler():
-    def returnFileError(self, httpHandler):
-        httpHandler.send_response(HTTPStatus.BAD_REQUEST)
-    def Handle(self, httpHandler, storageManager):
-        query_data = parse_qs(urlparse(httpHandler.path).query)
-
+    def returnFileError(self, environ, start_response):
+        start_response('400 BAD REQUEST', [])
+    def Handle(self, environ, start_response, storageManager):
+        query_data = parse_qs(environ['QUERY_STRING'])
 
         gameid = query_data.get('gameid', None)
         profileid = query_data.get('pid', None)
@@ -72,20 +71,20 @@ class FileDownloadHandler():
             fileid = int(fileid[0])
 
         if gameid == None or profileid == None or fileid == None:
-            self.returnFileError(httpHandler)
+            self.returnFileError(environ, start_response)
             return
 
         file_data = storageManager.DownloadFile(gameid, profileid, fileid)
         if file_data != None:
-            httpHandler.send_response(HTTPStatus.OK)
-            httpHandler.send_header("Content-type", "application/octet-stream")
-            httpHandler.send_header("Content-Disposition", "attachment; filename=\"{}\"".format(file_data["name"]))
-            httpHandler.send_header("Content-Length", "{}".format(len(file_data["data"])))
-            httpHandler.end_headers()
-            httpHandler.wfile.write(file_data["data"])
+            headers = [
+                ("Content-type", "application/octet-stream"),
+                ("Content-Disposition", "attachment; filename=\"{}\"".format(file_data["name"])),
+                ("Content-Length", "{}".format(len(file_data["data"])))
+            ]
+            start_response('200 OK', headers)
+            return file_data["data"]
         else:
-            httpHandler.send_response(HTTPStatus.NOT_FOUND)
-            httpHandler.end_headers()
+            start_response('404 NOT FOUND', [])
 
         
 

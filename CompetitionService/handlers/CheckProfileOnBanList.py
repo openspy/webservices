@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from modules.Exceptions import MissingParameterException
 class CheckProfileOnBanListHandler():
-    def Handle(self, httpHandler, xml_tree, storageManager):
+    def Handle(self, xml_tree, storageManager):
 
         request_root = xml_tree.find('.//{http://gamespy.net/competition/}CheckProfileOnBanList')
         if request_root == None:

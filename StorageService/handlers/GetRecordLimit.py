@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 class GetRecordLimitHandler():
-    def Handle(self, httpHandler, xml_tree):
+    def Handle(self, xml_tree):
 
 
         resp_xml = ET.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope')

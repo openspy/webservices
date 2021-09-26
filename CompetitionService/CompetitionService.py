@@ -19,36 +19,36 @@ from io import BytesIO
 import traceback
 import rsa
 
-class Handler(http.server.SimpleHTTPRequestHandler):
-    mongoConnection = pymongo.MongoClient(os.environ.get('MONGODB_URI'))
-    storageDatabase = mongoConnection["CompetitionService"]
-    storageManager = StorageManager(storageDatabase)
+mongoConnection = pymongo.MongoClient(os.environ.get('MONGODB_URI'))
+storageDatabase = mongoConnection["CompetitionService"]
+storageManager = StorageManager(storageDatabase)
 
-    createSessionHandler = CreateSessionHandler()
-    setReportIntentionHandler = SetReportIntentionHandler()
-    submitReportHandler = SubmitReportHandler()
-    createMatchlessSessionHandler = CreateMatchlessSessionHandler()
-    checkProfileOnBanListHandler = CheckProfileOnBanListHandler()
+createSessionHandler = CreateSessionHandler()
+setReportIntentionHandler = SetReportIntentionHandler()
+submitReportHandler = SubmitReportHandler()
+createMatchlessSessionHandler = CreateMatchlessSessionHandler()
+checkProfileOnBanListHandler = CheckProfileOnBanListHandler()
 
-    def do_GET(self):
-        self.send_response(HTTPStatus.NOT_FOUND)
-        self.end_headers()
+def handle_get(environ, start_response):
+    start_response('404 NOT FOUND', [])
 
-
-    def do_POST(self):
+def handle_post(environ, start_response):
         ET.register_namespace('SOAP-ENV',"http://schemas.xmlsoap.org/soap/envelope/")
         ET.register_namespace('SOAP-ENC',"http://schemas.xmlsoap.org/soap/encoding/")
         ET.register_namespace('xsi',"http://www.w3.org/2001/XMLSchema-instance")
         ET.register_namespace('xsd',"http://www.w3.org/2001/XMLSchema")
         try:
-            content_length = int(self.headers['Content-Length']) # <--- Gets the size of data
-            request_type = self.headers['SOAPAction']
+            if "HTTP_SOAPACTION" not in environ:
+                start_response('400 BAD REQUEST', [])
+                return None
+            content_length = int(environ['CONTENT_LENGTH']) # <--- Gets the size of data
+            request_type = environ['HTTP_SOAPACTION']
 
             result = None
-            request_body = self.rfile.read(content_length) # <--- Gets the data itself
+            request_body = environ['wsgi.input'].read(content_length) # <--- Gets the data itself
             if request_type == "\"http://gamespy.net/competition/SubmitReport\"":
                 fake_file = BytesIO(request_body)
-                result = self.submitReportHandler.Handle(self, fake_file, self.storageManager)
+                result = submitReportHandler.Handle(fake_file, storageManager)
             else:
                 
                 request_body = request_body.decode('utf8')
@@ -58,33 +58,31 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 result = None
 
                 if request_type == "\"http://gamespy.net/competition/CreateSession\"":
-                    result = self.createSessionHandler.Handle(self, tree, self.storageManager)
+                    result = createSessionHandler.Handle(tree, storageManager)
                 elif request_type == "\"http://gamespy.net/competition/CreateMatchlessSession\"":
-                    result = self.createMatchlessSessionHandler.Handle(self, tree, self.storageManager)
+                    result = createMatchlessSessionHandler.Handle(tree, storageManager)
                 elif request_type == "\"http://gamespy.net/competition/SetReportIntention\"":
-                    result = self.setReportIntentionHandler.Handle(self, tree, self.storageManager)
+                    result = setReportIntentionHandler.Handle(tree, storageManager)
                 elif request_type == "\"http://gamespy.net/competition/CheckProfileOnBanList\"": #AtlasDataServices
-                    result = self.checkProfileOnBanListHandler.Handle(self, tree, self.storageManager)
+                    result = checkProfileOnBanListHandler.Handle(tree, storageManager)
                 else:
                     print("unhandled request type: {}\n".format(request_type))
-                    
-
-
 
             if result == None:
-                self.send_response(HTTPStatus.BAD_REQUEST)
+                start_response('400 BAD REQUEST', [('Content-Type','application/xml')])
             else:
-                self.send_response(HTTPStatus.OK)
-                self.send_header('Content-Type','application/xml')
-            self.end_headers()
+                start_response('200 OK', [('Content-Type','application/xml')])
 
             if result != None:
-                self.wfile.write(result)
+                return result
         except:
             traceback.print_exc()
-            self.send_response(HTTPStatus.INTERNAL_SERVER_ERROR)
-            self.end_headers()
-
-
-httpd = socketserver.TCPServer(('', int(os.environ.get('PORT'))), Handler)
-httpd.serve_forever()
+            start_response('500 INTERNAL SERVER ERROR', [])
+    
+def application(environ, start_response):
+    if environ['REQUEST_METHOD'] == 'GET':
+        handle_get(environ, start_response)
+    elif environ['REQUEST_METHOD'] == 'POST':
+        result = handle_post(environ, start_response)
+        if result != None:
+            yield result
