@@ -58,6 +58,7 @@ def handle_post(environ, start_response):
             request_body = environ['wsgi.input'].read(content_length) # <--- Gets the data itself
 
             try:
+                request_body = request_body.decode('utf8').replace("<s1", "<ns1").replace("</s1", "</ns1") #weird ps3 fix
                 xml_tree = ET.ElementTree(ET.fromstring(request_body))
             except:
                 xml_tree = None
