@@ -100,19 +100,36 @@ class InputHelper():
     def verify_signature(self, length, version, auth_user_dir, server_data, use_md5, peerkey_data, signature):
         buffer = struct.pack("I", length)
         buffer += struct.pack("I", version)
+        if 'partnercode' in auth_user_dir and auth_user_dir['partnercode'] != None:
+            buffer += struct.pack("I", int(auth_user_dir['partnercode']))
 
-        buffer += struct.pack("I", int(auth_user_dir['partnercode']))
-        buffer += struct.pack("I", int(auth_user_dir['namespaceid']))
-        buffer += struct.pack("I", int(auth_user_dir['userid']))
-        buffer += struct.pack("I", int(auth_user_dir['profileid']))
-        buffer += struct.pack("I", int(auth_user_dir['expiretime']))
-        buffer += auth_user_dir['profilenick'].encode('utf8')
-        buffer += auth_user_dir['uniquenick'].encode('utf8')
-        buffer += auth_user_dir['cdkeyhash'].encode('utf8')
+        if 'namespaceid' in auth_user_dir and auth_user_dir['namespaceid'] != None:
+            buffer += struct.pack("I", int(auth_user_dir['namespaceid']))
 
-        buffer += binascii.unhexlify(peerkey_data['modulus'])
-        buffer += binascii.unhexlify(peerkey_data['exponent'])
-        buffer += server_data
+        if 'userid' in auth_user_dir and auth_user_dir['userid'] != None:
+            buffer += struct.pack("I", int(auth_user_dir['userid']))
+
+        if 'profileid' in auth_user_dir and auth_user_dir['profileid'] != None:
+            buffer += struct.pack("I", int(auth_user_dir['profileid']))
+
+        if 'expiretime' in auth_user_dir and auth_user_dir['expiretime'] != None:
+            buffer += struct.pack("I", int(auth_user_dir['expiretime']))
+
+        if auth_user_dir['profilenick'] != None:
+            buffer += auth_user_dir['profilenick'].encode('utf8')
+
+        if auth_user_dir['uniquenick'] != None:
+            buffer += auth_user_dir['uniquenick'].encode('utf8')
+
+        if auth_user_dir['cdkeyhash'] != None:
+            buffer += auth_user_dir['cdkeyhash'].encode('utf8')
+
+        if 'modulus' in peerkey_data and peerkey_data['modulus'] != None:
+            buffer += binascii.unhexlify(peerkey_data['modulus'])
+        if 'exponent' in peerkey_data and peerkey_data['exponent'] != None:
+            buffer += binascii.unhexlify(peerkey_data['exponent'])
+        if server_data != None:
+            buffer += server_data
 
         hash_algo = 'MD5'
         if not use_md5:

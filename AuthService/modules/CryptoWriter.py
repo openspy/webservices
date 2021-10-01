@@ -64,18 +64,36 @@ class CryptoWriter():
         buffer = struct.pack("I", length)
         buffer += struct.pack("I", version)
 
-        buffer += struct.pack("I", int(auth_user_dir['partnercode']))
-        buffer += struct.pack("I", int(auth_user_dir['namespaceid']))
-        buffer += struct.pack("I", int(auth_user_dir['userid']))
-        buffer += struct.pack("I", int(auth_user_dir['profileid']))
-        buffer += struct.pack("I", int(auth_user_dir['expiretime']))
-        buffer += auth_user_dir['profilenick'].encode('utf8')
-        buffer += auth_user_dir['uniquenick'].encode('utf8')
-        buffer += auth_user_dir['cdkeyhash'].encode('utf8')
+        if 'partnercode' in auth_user_dir and auth_user_dir['partnercode'] != None:
+            buffer += struct.pack("I", int(auth_user_dir['partnercode']))
 
-        buffer += binascii.unhexlify(peerkey_data['modulus'])
-        buffer += binascii.unhexlify(peerkey_data['exponent'])
-        buffer += server_data
+        if 'namespaceid' in auth_user_dir and auth_user_dir['namespaceid'] != None:
+            buffer += struct.pack("I", int(auth_user_dir['namespaceid']))
+
+        if 'userid' in auth_user_dir and auth_user_dir['userid'] != None:
+            buffer += struct.pack("I", int(auth_user_dir['userid']))
+
+        if 'profileid' in auth_user_dir and auth_user_dir['profileid'] != None:
+            buffer += struct.pack("I", int(auth_user_dir['profileid']))
+
+        if 'expiretime' in auth_user_dir and auth_user_dir['expiretime'] != None:
+            buffer += struct.pack("I", int(auth_user_dir['expiretime']))
+
+        if auth_user_dir['profilenick'] != None:
+            buffer += auth_user_dir['profilenick'].encode('utf8')
+
+        if auth_user_dir['uniquenick'] != None:
+            buffer += auth_user_dir['uniquenick'].encode('utf8')
+
+        if auth_user_dir['cdkeyhash'] != None:
+            buffer += auth_user_dir['cdkeyhash'].encode('utf8')
+
+        if 'modulus' in peerkey_data and peerkey_data['modulus'] != None:
+            buffer += binascii.unhexlify(peerkey_data['modulus'])
+        if 'exponent' in peerkey_data and peerkey_data['exponent'] != None:
+            buffer += binascii.unhexlify(peerkey_data['exponent'])
+        if server_data != None:
+            buffer += server_data
 
         #print("hash: {}\n".format(hashlib.md5(buffer).hexdigest()))
 
