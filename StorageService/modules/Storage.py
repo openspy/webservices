@@ -29,7 +29,7 @@ class StorageManager():
     def GenerateRecordId(self, db, collection_name):
         incrementor_collection = db["incrementors"]
         match = {"tablename": collection_name}
-        incrementor_collection.update(match, {"$inc": {"recordid": 1}}, upsert = True)
+        incrementor_collection.update_one(match, {"$inc": {"recordid": 1}}, upsert = True)
         result = incrementor_collection.find_one(match)
         return result["recordid"]
     def Create(self, auth_info, tableId, records):
