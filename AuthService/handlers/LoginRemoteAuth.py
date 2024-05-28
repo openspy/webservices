@@ -1,7 +1,3 @@
-import binascii
-import hashlib
-import rsa
-import struct, os
 import xml.etree.ElementTree as ET
 
 from modules.Exceptions import AuthServiceException, MissingParameterException

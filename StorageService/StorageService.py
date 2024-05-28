@@ -1,11 +1,5 @@
-import http.server
-import socketserver
-from http import HTTPStatus
 import xml.etree.ElementTree as ET
-from collections import OrderedDict
-import binascii
-import hashlib
-import struct, os
+import os
 from handlers.CreateRecord import CreateRecordHandler
 from handlers.UpdateRecord import UpdateRecordHandler
 from handlers.GetRecordLimit import GetRecordLimitHandler

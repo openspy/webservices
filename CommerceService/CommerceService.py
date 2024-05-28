@@ -1,13 +1,4 @@
-import http.server
-import socketserver
-from http import HTTPStatus
 import xml.etree.ElementTree as ET
-from collections import OrderedDict
-import binascii
-import hashlib
-import struct, os
-
-from io import BytesIO
 import traceback
 
 from handlers.GetStoreAvailability import GetStoreAvailabilityHandler
