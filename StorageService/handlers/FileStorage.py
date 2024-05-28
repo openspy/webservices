@@ -1,8 +1,6 @@
 import cgi
-from modules.Exceptions import SAKEException 
 from hooks.HookResolver import HookResolver
 
-from http import HTTPStatus
 from urllib.parse import urlparse, parse_qs
 
 class FileUploadHandler():

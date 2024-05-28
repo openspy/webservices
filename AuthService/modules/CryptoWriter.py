@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as ET
 import struct, os
 import binascii
-import hashlib
 import rsa
 from collections import OrderedDict
 from modules.ResponseCode import ResponseCodes

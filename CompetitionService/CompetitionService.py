@@ -1,11 +1,5 @@
-import http.server
-import socketserver
-from http import HTTPStatus
 import xml.etree.ElementTree as ET
-from collections import OrderedDict
-import binascii
-import hashlib
-import struct, os
+import os
 import pymongo
 from handlers.CreateSession import CreateSessionHandler
 from handlers.CreateMatchlessSession import CreateMatchlessSessionHandler
@@ -17,7 +11,6 @@ from modules.Storage import StorageManager
 
 from io import BytesIO
 import traceback
-import rsa
 
 mongoConnection = pymongo.MongoClient(os.environ.get('MONGODB_URI'))
 storageDatabase = mongoConnection["CompetitionService"]
