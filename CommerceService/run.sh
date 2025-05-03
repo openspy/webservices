@@ -1,0 +1,1 @@
+uwsgi --socket $COMMERCESERVICE_SOCKET --uid uwsgi --plugins python3 --protocol uwsgi --wsgi-file CommerceService.py

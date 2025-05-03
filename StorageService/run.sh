@@ -1,0 +1,1 @@
+uwsgi --socket $STORAGESERVICE_SOCKET --uid uwsgi --plugins python3 --protocol uwsgi --wsgi-file StorageService.py

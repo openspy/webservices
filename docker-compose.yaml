@@ -1,0 +1,43 @@
+version: "3.3"
+services:
+  authservices:
+    image: "chcniz/openspy-webservices-authservice"
+    hostname: "authservice"
+    ports:
+      - "3031:3031"
+    environment:
+      AUTHSERVICES_SOCKET: 0.0.0.0:3031
+      API_URL: http://core-web:8080
+      AUTH_TOKEN_EXPIRE_TIME: 3600
+      API_KEY: ELGAoKHyFPfsWhmWF5F/8uNz2YcdTrojCZbRfvlFwBKJIhDUdvMwM4bmljSsEBq57riyXRij8FoqmxWR8C2BQIEaGG68uFJKcQmJlLY2ntAFOYUloccRCr/eBW8sJZsTIGaIdVdsDeDOrRJR487tfFGNHW2Ezp+oVrZVsd3C9e0VobSE1fXdSFz3R5MIqH3bLprfcDLJL/U8gtvUBegOQI22Vviha24W0/76SQSo72Z7i6GrpU/OnrsjcHQSwyC6VeCTv5JjCP/BSsaCK0Zxw3OlzQsPAprQug9Pwm5MrH/pkkxhqLKcCxjsU25Zj+ipkKOzsO+rmqaIMsK6ILke6w==
+      AUTHSERVICES_PRIVKEY_PATH: /docker-support/openspy_webservices_private.pem
+      AUTHSERVICES_PEERKEY_KEY_PATH: /docker-support/openspy_webservices_private.pem
+    volumes:
+      - ./AuthService/docker-support/:/docker-support
+  commerceservice:
+    image: "chcniz/openspy-webservices-commerceservice"
+    hostname: "commerceservice"
+    ports:
+      - "3032:3032"
+    environment:
+      COMMERCESERVICE_SOCKET: 0.0.0.0:3032
+  competitionservice:
+    image: "chcniz/openspy-webservices-competitionservice"
+    hostname: "competitionservice"
+    ports:
+      - "3033:3033"
+    environment:
+      COMPETITIONSERVICE_SOCKET: 0.0.0.0:3033
+      AUTHSERVICES_PUBKEY_PATH: /docker-support/openspy_webservices_public.pem
+      MONGODB_URI: mongodb://openspy:OpenSpy123@mongo:27017/CompetitionService
+    volumes:
+      - ./AuthService/docker-support/:/docker-support
+  storageservice:
+    image: "chcniz/openspy-webservices-storageservice"
+    hostname: "storageservice"
+    ports:
+      - "3034:3034"
+    environment:
+      STORAGESERVICE_SOCKET: 0.0.0.0:3034
+      MONGODB_URI: mongodb://openspy:OpenSpy123@mongo:27017/StorageService
+      REDIS_URL: redis://redis/3

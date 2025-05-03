@@ -1,0 +1,1 @@
+uwsgi --socket $COMPETITIONSERVICE_SOCKET --uid uwsgi --plugins python3 --protocol uwsgi --wsgi-file CompetitionService.py
