@@ -26,7 +26,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: AuthService
+          context: "{{defaultContext}}:AuthService"
           push: true
           tags: chcniz/openspy-webservices-authservice:latest
   build-and-push-commerceservice:
@@ -48,7 +48,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: CommerceService
+          context: "{{defaultContext}}:CommerceService"
           push: true
           tags: chcniz/openspy-webservices-commerceservice:latest
   build-and-push-competitionservice:
@@ -70,7 +70,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: CompetitionService
+          context: "{{defaultContext}}:CompetitionService"
           push: true
           tags: chcniz/openspy-webservices-competitionservice:latest
   build-and-push-storageservice:
@@ -92,6 +92,6 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: StorageService
+          context: "{{defaultContext}}:StorageService"
           push: true
           tags: chcniz/openspy-webservices-storageservice:latest
