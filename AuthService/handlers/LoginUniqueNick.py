@@ -25,10 +25,10 @@ class LoginUniqueNickHandler():
             uniquenick = uniquenick_node.text
 
             partnercode_node = request_root.find('{http://gamespy.net/AuthService/}partnercode')
-            partnercode = partnercode_node.text
+            partnercode = int(partnercode_node.text)
 
             namespaceid_node = request_root.find('{http://gamespy.net/AuthService/}namespaceid')
-            namespaceid = namespaceid_node.text
+            namespaceid = int(namespaceid_node.text)
 
             #decrypt pw
             encrypted_pass = request_root.find('{http://gamespy.net/AuthService/}password').find('{http://gamespy.net/AuthService/}Value')

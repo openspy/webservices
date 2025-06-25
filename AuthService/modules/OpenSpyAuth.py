@@ -27,6 +27,9 @@ class OpenSpyAuth():
     def UniqueNickLogin(self, uniquenick, namespaceid, partnercode, password):
         headers = {"APIKey": self.api_key}
 
+        if partnercode > 1000: #some games (risingeaglepc - productid 11067) pass productid as partnercode... resulting in invalid results
+            partnercode = 0
+
         params = {
             "profileLookup": {
                 "uniquenick": uniquenick,
@@ -42,7 +45,8 @@ class OpenSpyAuth():
 
     def NickLogin(self, nick, email, namespaceid, partnercode, password):
          headers = {"APIKey": self.api_key}
-
+         if partnercode > 1000: #some games (risingeaglepc - productid 11067) pass productid as partnercode... resulting in invalid results
+            partnercode = 0
          params = {
              "profileLookup": {
                  "nick": nick,
